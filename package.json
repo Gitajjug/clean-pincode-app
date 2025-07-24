@@ -1,0 +1,10 @@
+{
+  "name": "clean-pincode-app",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@vercel/postgres": "^0.9.0",
+    "dotenv": "^16.4.5",
+    "csv-parse": "^5.5.6"
+  }
+}

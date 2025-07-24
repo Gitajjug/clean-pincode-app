@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>India Pincode Finder</title>
+    <meta name="description" content="A free tool to find the Pincode of any city or lookup details for any pincode in India.">
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
+    <style>
+        body { padding-top: 50px; }
+        .container { max-width: 720px; }
+        .loader { width: 50px; height: 50px; margin: 2rem auto; }
+        .result-card { margin-bottom: 1rem; }
+    </style>
+</head>
+<body>
+    <main class="container">
+        <h1>India Pincode Finder</h1>
+        <p>Find postal codes by location, or find locations by postal code.</p>
+
+        <div class="search-area" style="display: flex; gap: 10px; margin-bottom: 2rem;">
+            <input type="text" id="searchInput" placeholder="e.g., New Delhi...">
+            <button id="searchButton">Find</button>
+        </div>
+
+        <div id="resultsContainer"></div>
+        <progress class="loader" id="loader" style="display: none;"></progress>
+        <p id="message"></p>
+    </main>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const searchButton = document.getElementById('searchButton');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const loader = document.getElementById('loader');
+        const messageEl = document.getElementById('message');
+
+        const findPincode = async () => {
+            const searchTerm = searchInput.value.trim();
+            if (!searchTerm) {
+                messageEl.textContent = 'Please enter something to search.';
+                return;
+            }
+
+            resultsContainer.innerHTML = '';
+            messageEl.textContent = '';
+            loader.style.display = 'block';
+
+            // This is the URL. It calls our Vercel API function.
+            const apiUrl = `/api/search?q=${encodeURIComponent(searchTerm)}`;
+
+            try {
+                const response = await fetch(apiUrl);
+                const data = await response.json();
+                
+                if (data && data.length > 0 && data[0].Status === 'Success') {
+                    displayResults(data[0].PostOffice);
+                } else {
+                    messageEl.textContent = (data && data.length > 0 && data[0].Message) || 'No results found.';
+                }
+            } catch (error) {
+                messageEl.textContent = 'An error occurred during the search.';
+            } finally {
+                loader.style.display = 'none';
+            }
+        };
+
+        function displayResults(postOffices) {
+            resultsContainer.innerHTML = '';
+            if (!postOffices || postOffices.length === 0) {
+                 messageEl.textContent = 'No results found for this search.';
+                 return;
+            }
+            postOffices.forEach(office => {
+                const card = document.createElement('article');
+                card.className = 'result-card';
+                card.innerHTML = `
+                    <header><strong>${office.Name || 'N/A'}</strong></header>
+                    <p>District: ${office.District || 'N/A'}<br>
+                       State: ${office.State || 'N/A'}<br>
+                       Pincode: <strong>${office.Pincode || 'N/A'}</strong></p>
+                `;
+                resultsContainer.appendChild(card);
+            });
+        };
+
+        searchButton.addEventListener('click', findPincode);
+        searchInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') findPincode();
+        });
+    </script>
+</body>
+</html>
